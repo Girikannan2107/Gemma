@@ -1,0 +1,20 @@
+# Exclude model weights and datasets
+models/
+data/
+
+# Exclude Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+
+# Exclude IDE and temp files
+.vscode/
+.idea/
+.DS_Store
+
+# Exclude virtual environments
+.venv/
+venv/
+env/

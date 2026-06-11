@@ -1,0 +1,28 @@
+{
+  "weights": {
+    "load_time_s": 30.503371000289917,
+    "weight_vram_mb": 0.0,
+    "weight_vram_gb": 0.0,
+    "vram_after_load": {
+      "allocated_mb": 0.0,
+      "reserved_mb": 0.0,
+      "peak_mb": 0.000512
+    },
+    "total_params": 7941100832,
+    "trainable_params": 7941100832,
+    "by_dtype": {
+      "torch.float16": 7941100832
+    },
+    "estimated_size_gb": 15.882201664,
+    "params_billions": 7.941100832
+  },
+  "latency": {
+    "n_timed": 20,
+    "mean_ms": 18512.579184099923,
+    "min_ms": 18342.0807170005,
+    "max_ms": 18683.228806999978,
+    "p50_ms": 18508.481147997372,
+    "p95_ms": 18683.228806999978,
+    "vram_during_inference_gb": 0.01049
+  }
+}

@@ -1,0 +1,94 @@
+# configs/eval_config.yaml
+# Shared evaluation configuration across all phases.
+# Phase-specific scripts import this to ensure consistent metrics.
+
+model:
+  id: "google/gemma-4-E4B-it"
+  # Google's published inference parameters (competition slide 11)
+  generation:
+    temperature: 1.0
+    top_p: 0.95
+    top_k: 64
+    do_sample: false     # use greedy for determinism
+  max_new_tokens:
+    multiple_choice: 10  # only need 1 token (A/B/C/D) but give headroom
+    open_ended: 30
+
+benchmarks:
+  ai2d:
+    type: multiple_choice
+    split: test
+    metric: exact_match     # A/B/C/D exact match
+    hf_id: "lmms-lab/ai2d"
+  mmbench:
+    type: multiple_choice
+    split: test
+    metric: exact_match
+    hf_id: "lmms-lab/MMBench_EN"
+  textvqa:
+    type: open_ended
+    split: validation
+    metric: relaxed_accuracy   # VQA-style relaxed match
+    hf_id: "lmms-lab/textvqa"
+
+calibration:
+  dataset: "COCO val2017"
+  n_samples: 512
+  seed: 42
+
+energy:
+  tracker: "codecarbon"
+  version: "2.5.0"
+  gpu_ids: [0]
+  measure_power_secs: 15
+  # Competition uses NVML for GPU, TDP-based for CPU
+  monitoring:
+    gpu: NVML                      # pynvml real-time
+    cpu: TDP_relative              # CodeCarbon default
+
+hardware:
+  competition:
+    name: "NVIDIA L4"
+    vram_gb: 16
+    architecture: "Ada Lovelace"
+    supports_fp8: true
+    supports_bf16: true
+    supports_flash_attn2: true
+  dev:
+    name: "NVIDIA GTX 1080 Ti"
+    vram_gb: 11
+    architecture: "Pascal"
+    supports_fp8: false
+    supports_bf16: false
+    supports_flash_attn2: false
+    notes: "Use --load_8bit for baseline fitting; FP8/BF16 only on L4"
+
+phase_targets:
+  # What Phase 2 must achieve to be a valid submission
+  accuracy_floor: 0.80         # ≥ 80% of baseline
+  energy_target_reduction: 0.40  # aim for ≥ 40% energy reduction
+  vram_ceiling_gb: 16.0         # must fit on L4
+
+  # Phase 2 compression candidates (ranked by expected ROI)
+  quantization_candidates:
+    - name: "AWQ INT4"
+      engine: "vllm"
+      expected_accuracy_drop: 0.02   # ~2%
+      expected_energy_reduction: 0.50 # ~50%
+      expected_vram_reduction: 0.70  # ~70% of FP16 weight VRAM
+    - name: "GGUF Q4_K_M"
+      engine: "llama_cpp"
+      expected_accuracy_drop: 0.03
+      expected_energy_reduction: 0.45
+      expected_vram_reduction: 0.65
+    - name: "GPTQ INT4"
+      engine: "vllm"
+      expected_accuracy_drop: 0.03
+      expected_energy_reduction: 0.48
+      expected_vram_reduction: 0.70
+    - name: "FP8"
+      engine: "vllm"
+      expected_accuracy_drop: 0.01
+      expected_energy_reduction: 0.35
+      expected_vram_reduction: 0.50
+      note: "Only on L4 / Ada+ GPUs — not testable on 1080 Ti"
